@@ -1,0 +1,15 @@
+{
+  "name": "brown",
+  "version": "0.0.0",
+  "description": "",
+  "main": "brown.coffee",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "chitacan",
+  "license": "MIT",
+  "dependencies": {
+    "qs": "^2.3.3",
+    "underscore": "^1.7.0"
+  }
+}
