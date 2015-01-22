@@ -25,6 +25,7 @@ onSandbox = (chartData) ->
       title  : chartData.title
       width  : chartData.size[0]
       height : chartData.size[1]
+      is3D   : true if chartData.type is 'p3'
       # legent: 'none'
       # pieSliceText : 'label'
 
@@ -47,6 +48,7 @@ server.listen 9500, (req, res) ->
   qData = qs.parse url
 
   data = {}
+  data.type  = qData.cht
   data.table = _.zip(qData.chl.split('|'), qData.chd.split(',').map (i)-> +i)
   data.size  = qData.chs.split 'x'
   data.title = qData.chtt
