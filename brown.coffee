@@ -32,7 +32,9 @@ onSandbox = (chartData) ->
 
     el    = document.getElementById 'chart'
     chart = new google.visualization.PieChart el
-    google.visualization.events.addListener chart, 'ready', () -> window.callPhantom chart.getImageURI()
+    google.visualization.events.addListener chart, 'ready', () ->
+      svg = el.getElementsByTagName('svg')[0]
+      window.callPhantom svg.getBoundingClientRect()
 
     chart.draw data, opt
 
@@ -43,7 +45,7 @@ render = (data, cb) ->
   page.onLoadFinished   = ()     -> page.evaluate onSandbox, data
   page.onConsoleMessage = (msg ) -> console.log msg
   page.onError          = (msg ) -> console.log msg
-  page.onCallback       = (data) -> cb atob data.split(',')[1]
+  page.onCallback       = (data) -> cb data
 
 server.listen 9500, (req, res) ->
   url = req.url.split('?')[1]
@@ -56,11 +58,12 @@ server.listen 9500, (req, res) ->
   data.title = qData.chtt
 
   render data, (result) ->
-    size = result.length / (1024 * 1024)
-    console.log "response image #{size.toFixed(2)} mb"
-    fs.write 'hello.png', result
+    page.clipRect = result
+    page.render 'captured.png'
+
+    fi = fs.open './captured.png', 'rb'
     res.statusCode = 200
     res.setEncoding 'binary'
     res.setHeader 'Content-Type', 'image/png'
-    res.write result
+    res.write fi.read()
     res.close();
