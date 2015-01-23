@@ -26,7 +26,8 @@ onSandbox = (chartData) ->
       width  : chartData.size[0]
       height : chartData.size[1]
       is3D   : true if chartData.type is 'p3'
-      # legent: 'none'
+      colors : ['#e0440e', '#e6693e', '#ec8f6e', '#f3b49f', '#f6c7b6']
+      legend : 'none'
       # pieSliceText : 'label'
 
     el    = document.getElementById 'chart'
@@ -35,12 +36,13 @@ onSandbox = (chartData) ->
 
     chart.draw data, opt
 
-  setTimeout drawChart, 100
+  setTimeout drawChart, 0
 
 render = (data, cb) ->
   page.content = template
   page.onLoadFinished   = ()     -> page.evaluate onSandbox, data
   page.onConsoleMessage = (msg ) -> console.log msg
+  page.onError          = (msg ) -> console.log msg
   page.onCallback       = (data) -> cb atob data.split(',')[1]
 
 server.listen 9500, (req, res) ->
@@ -54,6 +56,9 @@ server.listen 9500, (req, res) ->
   data.title = qData.chtt
 
   render data, (result) ->
+    size = result.length / (1024 * 1024)
+    console.log "response image #{size.toFixed(2)} mb"
+    fs.write 'hello.png', result
     res.statusCode = 200
     res.setEncoding 'binary'
     res.setHeader 'Content-Type', 'image/png'
