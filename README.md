@@ -15,4 +15,4 @@ browse `http://<YOUR_IP>:<PORT>/chart?cht=p3&chs=600x400&chd=50,100&chl=brown|yo
 # TODO
 
 - [ ] support [pie chart features](https://google-developers.appspot.com/chart/image/docs/gallery/pie_charts)
-- [ ] cache generated charts
+- [x] cache generated charts
