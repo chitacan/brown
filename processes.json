@@ -2,7 +2,6 @@
   "apps" : [{
     "name"               : "brown",
     "script"             : "brown.coffee",
-    "max_memory_restart" : "120M",
     "exec_interpreter"   : "phantomjs",
     "exec_mode"          : "fork_mode",
     "watch"              : ["brown.coffee"]
