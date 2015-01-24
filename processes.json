@@ -2,6 +2,7 @@
   "apps" : [{
     "name"               : "brown",
     "script"             : "brown.coffee",
+    "cron_restart"       : "30 3 * * *",
     "exec_interpreter"   : "phantomjs",
     "exec_mode"          : "fork_mode",
     "watch"              : ["brown.coffee"]
