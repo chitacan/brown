@@ -9,6 +9,7 @@
   "author": "chitacan",
   "license": "MIT",
   "dependencies": {
+    "jshashes": "^1.0.5",
     "qs": "^2.3.3",
     "underscore": "^1.7.0"
   }
