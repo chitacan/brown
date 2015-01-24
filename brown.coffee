@@ -2,8 +2,10 @@ system = require 'system'
 qs     = require 'qs'
 _      = require 'underscore'
 fs     = require 'fs'
+H      = require 'jshashes'
 page   = require('webpage'  ).create()
 server = require('webserver').create()
+sha1   = new H.SHA1()
 template = """
 <html lang="en">
 <head>
@@ -17,6 +19,8 @@ template = """
 </body>
 </html>
 """
+
+fs.makeDirectory './cache' unless fs.exists './cache'
 
 onSandbox = (chartData) ->
   drawChart = () ->
@@ -47,9 +51,19 @@ render = (data, cb) ->
   page.onError          = (msg ) -> console.log msg
   page.onCallback       = (data) -> cb data
 
+responseImg = (res, name) ->
+  fi = fs.open "./cache/#{name}.png", 'rb'
+  res.statusCode = 200
+  res.setEncoding 'binary'
+  res.setHeader 'Content-Type', 'image/png'
+  res.write fi.read()
+  res.close();
+
 server.listen 9500, (req, res) ->
-  url = req.url.split('?')[1]
+  url   = req.url.split('?')[1]
   qData = qs.parse url
+  name  = sha1.hex url
+  return responseImg res, name if fs.exists "./cache/#{name}.png"
 
   data = {}
   data.type  = qData.cht
@@ -59,11 +73,6 @@ server.listen 9500, (req, res) ->
 
   render data, (result) ->
     page.clipRect = result
-    page.render 'captured.png'
+    page.render "./cache/#{name}.png"
+    responseImg res, name
 
-    fi = fs.open './captured.png', 'rb'
-    res.statusCode = 200
-    res.setEncoding 'binary'
-    res.setHeader 'Content-Type', 'image/png'
-    res.write fi.read()
-    res.close();
