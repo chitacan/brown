@@ -20,33 +20,24 @@ template = """
 </html>
 """
 
-onSandbox = (chartData) ->
-  drawChart = () ->
-    data = google.visualization.arrayToDataTable chartData.table, true
-    opt  =
-      title  : chartData.title
-      width  : chartData.size[0]
-      height : chartData.size[1]
-      is3D   : true if chartData.type is 'p3'
-      colors : ['1f77b4', 'ff7f0e', '2ca02c', 'd62728', '9467bd', '8c564b', 'e377c2', '7f7f7f', 'bcbd22', '17becf']
-      legend : 'none'
-      # pieSliceText : 'label'
+onSandbox = (spec) ->
+  onReady = () ->
+    clearTimeout timeout
+    svg = document.getElementsByTagName('svg')[0]
+    window.callPhantom svg.getBoundingClientRect()
 
-    el      = document.getElementById 'chart'
-    chart   = new google.visualization.PieChart el
-    console.log 'ondraw'
-    timeout = setTimeout () ->
-      console.error 'chart draw timeout'
-      window.callPhantom()
-    , 2000
-    google.visualization.events.addListener chart, 'ready', () ->
-      clearTimeout timeout
-      svg = el.getElementsByTagName('svg')[0]
-      window.callPhantom svg.getBoundingClientRect()
+  draw = () ->
+    console.log 'onDraw'
+    spec.dataTable = google.visualization.arrayToDataTable spec.dataTable
+    chart = new google.visualization.ChartWrapper spec
+    google.visualization.events.addListener chart, 'ready', onReady
+    chart.draw()
 
-    chart.draw data, opt
-
-  setTimeout drawChart, 0
+  timeout = setTimeout () ->
+    console.error 'draw timeout'
+    window.callPhantom()
+  , 2000
+  setTimeout draw, 0
 
 render = (data, cb) ->
   page.content = template
@@ -69,6 +60,73 @@ responseErr = (res) ->
   res.close()
 
 server.listen 9500, (req, res) ->
+  lineChart = (data) ->
+    genTable = (data) ->
+      # parse with https://developers.google.com/chart/image/docs/gallery/line_charts#axis_labels
+      makeColumn = (first, arr) ->
+        [first].concat arr
+      chxl = _.compact data.chxl?.split /\d:\|/
+      chxl = chxl.map (i) -> i.split '|'
+      x = chxl[0]
+      y = chxl[1]
+      chd  = data.chd?.split('|').map (arr)->arr.split(',').map (i)->+i
+
+      _.zip makeColumn(y[0], x), makeColumn(y[1], chd[0]), makeColumn(y[2], chd[1])
+    spec = 
+      chartType   : 'LineChart'
+      ###
+      ['Year', 'Sales', 'Expenses'],
+      ['2004',  1000,      400],
+      ['2005',  1170,      460],
+      ['2006',  660,       1120],
+      ['2007',  1030,      540]
+
+      [chxl[0][0], chxl[0][1], chxl[0[2]],
+      [chxl[1][0], chd[0][0], chd[1][0]],
+      [chxl[1][1], chd[0][1], chd[1][1]],
+      [chxl[1][2], chd[0][2], chd[1][2]],
+      [chxl[1][3], chd[0][3], chd[1][3]],
+      ###
+      dataTable   : genTable data
+      containerId : 'chart'
+      options :
+        title  : data.chtt
+        width  : data.chs?.split('x')[0]
+        height : data.chs?.split('x')[1]
+        colors : data.chco?.split '|'
+        legend : 
+          position : 'labeled'
+
+  pieChart = (data) ->
+    spec = 
+      chartType   : 'PieChart'
+      ###
+      ['Task', 'Hours per Day'],
+      [chl[0], chd[0]]
+      [chl[1], chd[1]]
+      [chl[2], chd[2]]
+      [chl[3], chd[3]]
+      ###
+      dataTable   : _.zip(data.chl?.split('|'), data.chd?.split(',').map (i)-> +i)
+      containerId : 'chart'
+      options :
+        title  : data.chtt
+        width  : data.chs?.split('x')[0]
+        height : data.chs?.split('x')[1]
+        is3D   : true if data.type is 'p3'
+        colors : data.chco?.split '|'
+        legend : 
+          position : 'labeled'
+        pieSliceText  : 'none'
+        pieStartAngle : if data.chp? then +data.chp * 180 / Math.PI else 0
+
+  createSpec = (qData) ->
+    switch qData.cht
+      when 'p', 'p3'
+        pieChart qData
+      when 'lc', 'ls', 'lxy'
+        lineChart qData
+
   console.log req.url
   fs.makeDirectory './cache' unless fs.exists './cache'
   url   = req.url.split('?')[1]
@@ -76,16 +134,8 @@ server.listen 9500, (req, res) ->
   name  = sha1.hex url
   return responseImg res, name if fs.exists "./cache/#{name}.png"
 
-  data = {}
-  data.type   = qData.cht
-  data.table  = _.zip(qData.chl.split('|'), qData.chd.split(',').map (i)-> +i)
-  data.size   = qData.chs.split 'x'
-  data.title  = qData.chtt
-  data.colors = qData.chco.split '|'
-
-  render data, (result) ->
+  render createSpec(qData), (result) ->
     return responseErr res unless result
     page.clipRect = result
     page.render "./cache/#{name}.png"
     responseImg res, name
-
