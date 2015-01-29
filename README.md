@@ -1,7 +1,6 @@
 # brown
 
-server side google chart renderer.
-
+server side google chart renderer. (experimental project)
 
 # run
 
