@@ -28,7 +28,7 @@ onSandbox = (spec) ->
 
   draw = () ->
     console.log 'onDraw'
-    spec.dataTable = google.visualization.arrayToDataTable spec.dataTable
+    spec.dataTable = google.visualization.arrayToDataTable spec.dataTable, spec.firstRowIsData
     chart = new google.visualization.ChartWrapper spec
     google.visualization.events.addListener chart, 'ready', onReady
     chart.draw()
@@ -62,16 +62,19 @@ responseErr = (res) ->
 server.listen 9500, (req, res) ->
   lineChart = (data) ->
     genTable = (data) ->
+
       # parse with https://developers.google.com/chart/image/docs/gallery/line_charts#axis_labels
-      makeColumn = (first, arr) ->
-        [first].concat arr
       chxl = _.compact data.chxl?.split /\d:\|/
       chxl = chxl.map (i) -> i.split '|'
-      x = chxl[0]
-      y = chxl[1]
-      chd  = data.chd?.split('|').map (arr)->arr.split(',').map (i)->+i
+      xAxis = _.compact chxl[0]
+      yAxis = _.compact chxl[1]
+      chd = data.chd?.split('|').map (arr)->arr.split(',').map (i)->+i
+      chd = _.zip.apply _, chd 
 
-      _.zip makeColumn(y[0], x), makeColumn(y[1], chd[0]), makeColumn(y[2], chd[1])
+      result  = _(xAxis).reduce (row, firstColumn, i) ->
+        row.push [firstColumn].concat chd[i]
+        row
+      , [yAxis]
     spec = 
       chartType   : 'LineChart'
       ###
@@ -89,6 +92,7 @@ server.listen 9500, (req, res) ->
       ###
       dataTable   : genTable data
       containerId : 'chart'
+      firstRowIsData : false
       options :
         title  : data.chtt
         width  : data.chs?.split('x')[0]
@@ -109,11 +113,12 @@ server.listen 9500, (req, res) ->
       ###
       dataTable   : _.zip(data.chl?.split('|'), data.chd?.split(',').map (i)-> +i)
       containerId : 'chart'
+      firstRowIsData : true
       options :
         title  : data.chtt
         width  : data.chs?.split('x')[0]
         height : data.chs?.split('x')[1]
-        is3D   : true if data.type is 'p3'
+        is3D   : true if data.cht is 'p3'
         colors : data.chco?.split '|'
         legend : 
           position : 'labeled'
