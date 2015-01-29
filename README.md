@@ -19,5 +19,6 @@ for `LineChart`, browse
 
 # TODO
 
+- [ ] support [MetricsGraphics](http://metricsgraphicsjs.org/) ?
 - [ ] support [pie chart features](https://google-developers.appspot.com/chart/image/docs/gallery/pie_charts)
 - [x] cache generated charts
