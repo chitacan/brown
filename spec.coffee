@@ -7,6 +7,19 @@ module.exports = (qData) ->
     when 'lc', 'ls', 'lxy'
       lineChart qData
 
+###
+  convert following query
+
+    chd=50,100,300,20|10,30,20,90&chxl=0:|2001|2002|2003|2004|1:|year|sales|expense
+
+  to
+
+    ['year', 'sales', 'expenses'],
+    ['2001',  50,     10],
+    ['2002',  100,    30],
+    ['2003',  300,    20],
+    ['2004',  20,     90]
+###
 lineChart = (data) ->
   genTable = (data) ->
 
@@ -24,19 +37,6 @@ lineChart = (data) ->
     , [yAxis]
   spec = 
     chartType   : 'LineChart'
-    ###
-    ['Year', 'Sales', 'Expenses'],
-    ['2004',  1000,      400],
-    ['2005',  1170,      460],
-    ['2006',  660,       1120],
-    ['2007',  1030,      540]
-
-    [chxl[0][0], chxl[0][1], chxl[0[2]],
-    [chxl[1][0], chd[0][0], chd[1][0]],
-    [chxl[1][1], chd[0][1], chd[1][1]],
-    [chxl[1][2], chd[0][2], chd[1][2]],
-    [chxl[1][3], chd[0][3], chd[1][3]],
-    ###
     dataTable   : genTable data
     containerId : 'chart'
     firstRowIsData : false
@@ -48,16 +48,21 @@ lineChart = (data) ->
       legend : 
         position : 'labeled'
 
+###
+  convert following query
+
+    chd=50,100,300,20&chl=a|b|c|d|e
+
+  to
+
+    [a, 50]
+    [b, 100]
+    [c, 300]
+    [d, 20]
+###
 pieChart = (data) ->
   spec = 
     chartType   : 'PieChart'
-    ###
-    ['Task', 'Hours per Day'],
-    [chl[0], chd[0]]
-    [chl[1], chd[1]]
-    [chl[2], chd[2]]
-    [chl[3], chd[3]]
-    ###
     dataTable   : _.zip(data.chl?.split('|'), data.chd?.split(',').map (i)-> +i)
     containerId : 'chart'
     firstRowIsData : true
