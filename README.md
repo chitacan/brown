@@ -25,6 +25,7 @@ for `LineChart`, browse
 
 # TODO
 
+- [ ] [vega](http://trifacta.github.io/vega/) would be much better solution :thought_balloon:
 - [ ] support [MetricsGraphics](http://metricsgraphicsjs.org/) ?
 - [ ] support [pie chart features](https://google-developers.appspot.com/chart/image/docs/gallery/pie_charts)
 - [x] cache generated charts
